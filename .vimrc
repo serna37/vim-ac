@@ -315,6 +315,17 @@ fu! s:idemenu.open() abort
     cal matchadd('DarkBlue', '(.*)', 16, -1, #{window: self.cheatid})
 endf
 
+let s:test_timer_id = 0
+fu! TestTimer(tid) abort
+    let lines = getline(0, line("$"))
+    for i in lines
+        if match(i, "test success") != -1
+            cal system('afplay /System/Library/Sounds/Hero.aiff')
+            cal timer_stop(a:tid)
+            retu
+        endif
+    endfor
+endf
 fu! Idemenu_exe(_, idx) abort
     if a:idx == 1
         " ❯ python3 -m pip install online-judge-tools
@@ -328,6 +339,7 @@ fu! Idemenu_exe(_, idx) abort
         setl filetype=log
         cal matchadd('DarkBlue', 'SUCCESS')
         sil! exe 'r!'.cmd
+        let s:test_timer_id = timer_start(500, {tid -> TestTimer(tid)}, { "repeat" : 10 })
     elseif a:idx == 2
         " TODO ide menu format 選択部分のみをしたい
         if exists(':Coc')
@@ -1261,6 +1273,12 @@ let s:timer_popup_id = popup_create(s:view_time, #{
         \ })
 fu! Timer(tid) abort
     let s:timer_sec += 1
+
+    " bell
+    if s:timer_sec%1200==0
+        cal system('afplay /System/Library/Sounds/Submarine.aiff')
+    endif
+    " LPAD 0埋め
     let minutes = s:timer_sec/60
     if minutes < 10
         let minutes = '00'.minutes
