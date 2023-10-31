@@ -1,7 +1,7 @@
 # vim-ac
 
 ```
-alias acvim='ln -nfs ~/git/vim/.vimrc ~/.vimrc && cd ~/work/ac_js && vi -c "CocCommand explorer --width 30"'
+alias acvim='ln -nfs ~/git/vim-ac/.vimrc ~/.vimrc && cd ~/work/ac_js && vi -c "CocCommand explorer --width 30"'
 ```
 
 ```
