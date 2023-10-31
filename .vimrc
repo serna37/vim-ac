@@ -89,6 +89,7 @@ tnoremap <C-h> <C-k>h
 tnoremap <C-l> <C-k>l
 tnoremap <C-k> <C-k>k
 tnoremap <C-j> <C-k>j
+set splitright
 " window resize
 nnoremap <Left> 4<C-w><
 nnoremap <Right> 4<C-w>>
@@ -285,9 +286,11 @@ noremap <silent><Plug>(anchor) :<C-u>cal <SID>anchor()<CR>
 let s:idemenu = #{
     \ menuid: 0, mttl: ' IDE MENU (j / k) Enter choose | * require plugin ',
     \ menu: [
+        \ '[⚛︎Test]           test by oj cmd',
         \ '[Format]         applay format for this file',
         \ '[ReName*]        rename current word recursively',
         \ '[Snippet*]       edit snippets',
+        \ '[✂︎All Cut]        copy all and delete',
     \ ],
     \ cheatid: 0, cheattitle: ' LSP KeyMaps ',
     \ cheat: [
@@ -313,13 +316,25 @@ endf
 
 fu! Idemenu_exe(_, idx) abort
     if a:idx == 1
+        " ❯ python3 -m pip install online-judge-tools
+        let w = s:inputI('which test (lower case like a):')
+        let pre = 'cd ~/work/ac_js && rm -rf test && cat contest_setting.txt | xargs -I {} oj d https://atcoder.jp/contests/{}/tasks/{}_'.w
+        cal system(pre)
+        let cmd = 'cd ~/work/ac_js && oj t -c "node main.js"'
+        sil! exe 'vne ac_test'
+        setl buftype=nofile bufhidden=wipe modifiable
+        setl nonumber norelativenumber nocursorline nocursorcolumn signcolumn=no
+        setl filetype=log
+        cal matchadd('DarkBlue', 'SUCCESS')
+        sil! exe 'r!'.cmd
+    elseif a:idx == 2
         " TODO ide menu format 選択部分のみをしたい
         if exists(':Coc')
             cal CocActionAsync('format')
         else
             execute('norm gg=G'.line('.').'G')
         endif
-    elseif a:idx == 2
+    elseif a:idx == 3
         if exists(':Coc')
             cal CocActionAsync('rename')
         else
@@ -327,7 +342,7 @@ fu! Idemenu_exe(_, idx) abort
             cal popup_close(s:idemenu.cheatid)
             retu 1
         endif
-    elseif a:idx == 3
+    elseif a:idx == 4
         if exists(':CocCommand')
             exe 'CocCommand snippets.editSnippets'
         else
@@ -335,6 +350,10 @@ fu! Idemenu_exe(_, idx) abort
             cal popup_close(s:idemenu.cheatid)
             retu 1
         endif
+    elseif a:idx == 5
+        exe '%d'
+        cal popup_close(s:idemenu.cheatid)
+        retu 1
     endif
     cal popup_close(s:idemenu.cheatid)
     retu 0
@@ -345,6 +364,7 @@ fu! s:idemenu() abort
 endf
 noremap <silent><Plug>(ide-menu) :<C-u>cal <SID>idemenu()<CR>
 " }}}
+
 
 
 " }}}
@@ -1022,26 +1042,18 @@ let s:start.ac_logo = [
 
 " cheat sheet {{{
 let s:start.cheat_sheet_win = [
-    \'       ╭── Window ──────────────────────────────────────────╮           ╭── Motion ──────────────────────────────────────────╮    ',
-    \'       │ C-n / p    | (buffer tab)(next / prev)             │           │ Space f       | (formatter)                        │    ',
-    \'       │ C-w v / s  | (window split)(vertical / horizontal) │           │ Space w       | (f-scope toggle)                   │    ',
-    \'       │ ←↑↓→       | (window)(resize)                      │           │ Tab S-Tab     | (jump 5rows)                       │    ',
-    \'       │ C-hjkl     | (window)(forcus)                      │           │ s             | (easymotion)                       │       ',
-    \'       │ Space t    | (terminal)                            │           │ INSERT C-hjkl | (cursor move)                      │   ',
-    \'       │ Space z    | (Zen Mode)                            │           │ VISUAL C-jk   | (blok up / down)                   │     ',
-    \'       ╰────────────────────────────────────────────────────╯           ╰────────────────────────────────────────────────────╯        ',
-    \'       ╭── Search ──────────────────────────────────────────╮                                          ',
-    \'       │ Space e    | (explorer)                            │                                          ',
-    \'       │ Space q    | (clear search highlight)              │                                          ',
-    \'       ╰────────────────────────────────────────────────────╯                                          ',
-    \'       ╭── Motion ──────────────────────────────────────────╮          ╭── Command ──────────────────────────────────────────╮',
-    \'       │ Space f       | (formatter)                        │          │ :PlugInstall            | (plugins install)         │',
-    \'       │ Space w       | (f-scope toggle)                   │          │ :PlugUnInstall          | (plugins uninstall)       │',
-    \'       │ Tab S-Tab     | (jump 5rows)                       │          │        │',
-    \'       │ s             | (easymotion)                       │          │        │',
-    \'       │ INSERT C-hjkl | (cursor move)                      │          │    │',
-    \'       │ VISUAL C-jk   | (blok up / down)                   │          ╰─────────────────────────────────────────────────────╯',
-    \'       ╰────────────────────────────────────────────────────╯',
+    \'               ╭── Window ──────────────────────────────────────────╮           ╭── Motion ──────────────────────────────────────────╮',
+    \'               │ C-n / p    | (buffer tab)(next / prev)             │           │ Space f          | (formatter)                     │',
+    \'               │ C-w v / s  | (window split)(vertical / horizontal) │           │ Space w          | (f-scope toggle)                │',
+    \'               │ ←↑↓→       | (window)(resize)                      │           │ Tab S-Tab        | (jump 5rows)                    │',
+    \'               │ C-hjkl     | (window)(forcus)                      │           │ s                | (easymotion)                    │',
+    \'               │ Space t    | (terminal)                            │           │ INSERT C-hjkl    | (cursor move)                   │',
+    \'               │ Space z    | (Zen Mode)                            │           │ VISUAL C-jk      | (blok up / down)                │',
+    \'               ╰────────────────────────────────────────────────────╯           ╰────────────────────────────────────────────────────╯',
+    \'               ╭── Search ──────────────────────────────────────────╮           ╭── Command ─────────────────────────────────────────╮',
+    \'               │ Space e    | (explorer)                            │           │ :PlugInstall     | (plugins install)               │',
+    \'               │ Space q    | (clear search highlight)              │           │ :PlugUnInstall   | (plugins uninstall)             │',
+    \'               ╰────────────────────────────────────────────────────╯           ╰────────────────────────────────────────────────────╯',
     \]
 " }}}
 
@@ -1066,10 +1078,12 @@ fu! s:start.exe() abort
     " draw
     cal append('$', self.ac_logo)
     cal append('$', self.cheat_sheet_win)
-    hi ACLogo ctermfg=218 cterm=bold
+    hi ACLogo ctermfg=45
     cal matchaddpos('ACLogo', range(2,9)->map({_,v->[v]}), 999)
     cal matchaddpos('ACLogo', range(10,17)->map({_,v->[v]}), 999)
-    cal matchaddpos('ACLogo', range(18,21)->map({_,v->[v]}), 999)
+    cal matchaddpos('ACLogo', range(18,25)->map({_,v->[v]}), 999)
+    cal matchaddpos('ACLogo', range(26,33)->map({_,v->[v]}), 999)
+    cal matchaddpos('ACLogo', range(34,35)->map({_,v->[v]}), 999)
     cal matchadd('User_greenfg_blackbg', '[─│╰╯╭╮]', 20)
     cal matchadd('DarkOrange', '\(Window\|Search\|Motion\|Command\)')
     cal matchadd('DarkBlue', '│.\{-,25}|', 19)
@@ -1111,7 +1125,7 @@ let s:plug.repos = [
 
 " coc extentions
 let s:plug.coc_extentions = [
-    \ 'coc-explorer', 'coc-fzf-preview', 'coc-snippets',
+    \ 'coc-explorer', 'coc-pairs', 'coc-fzf-preview', 'coc-snippets',
     \ 'coc-sh', 'coc-vimlsp', 'coc-json', 'coc-sql', 'coc-html', 'coc-css',
     \ 'coc-tsserver', 'coc-clangd', 'coc-go', 'coc-pyright', 'coc-java',
     \ ]
@@ -1221,6 +1235,41 @@ aug END
 colorscheme torte
 colorscheme onedark
 
+
+" 設定中のコンテスト番号を表示（テスト対象で使用する）
+try
+    let abc = 'contest_setting : '.readfile('contest_setting.txt')[0]
+    cal popup_notification(abc, #{border:[], zindex:999, line: &lines-30, col: &columns-40, time:10000})
+catch
+endtry
+
+" 100分タイマー
+let s:timer_sec = 0
+let s:view_time = ['000:00']
+let s:timer_popup_id = popup_create(s:view_time, #{
+        \ zindex: 99, mapping: 0, scrollbar: 1,
+        \ border: [], borderchars: ['─','│','─','│','╭','╮','╯','╰'], borderhighlight: ['DarkBlue'],
+        \ line: &lines-10, col: 10,
+        \ })
+fu! Timer(tid) abort
+    let s:timer_sec += 1
+    let minutes = s:timer_sec/60
+    if minutes < 10
+        let minutes = '00'.minutes
+    elseif minutes < 100
+        let minutes = '0'.minutes
+    endif
+    let seconds = s:timer_sec%60
+    if seconds < 10
+        let seconds = '0'.seconds
+    endif
+    let s:view_time = [minutes.':'.seconds]
+    cal setbufline(winbufnr(s:timer_popup_id), 1, s:view_time)
+    if s:timer_sec > 5400
+        cal matchadd('DarkRed', '[^ ]', 16, -1, #{window: s:timer_popup_id})
+    endif
+endf
+cal timer_start(1000, function("Timer"), { "repeat" : -1 })
 
 " }}}
 
