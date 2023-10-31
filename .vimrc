@@ -286,11 +286,12 @@ noremap <silent><Plug>(anchor) :<C-u>cal <SID>anchor()<CR>
 let s:idemenu = #{
     \ menuid: 0, mttl: ' IDE MENU (j / k) Enter choose | * require plugin ',
     \ menu: [
-        \ '[⚛︎Test]           test by oj cmd',
+        \ '[⚙︎Test]          test by oj cmd',
         \ '[Format]         applay format for this file',
-        \ '[ReName*]        rename current word recursively',
-        \ '[Snippet*]       edit snippets',
-        \ '[✂︎All Cut]        copy all and delete',
+        \ '[ReName]         rename current word recursively',
+        \ '[⚖︎ContestCode]   checkout contest code',
+        \ '[Snippet]        edit snippets',
+        \ '[✔︎All Cut]       copy all and delete',
     \ ],
     \ cheatid: 0, cheattitle: ' LSP KeyMaps ',
     \ cheat: [
@@ -342,7 +343,14 @@ fu! Idemenu_exe(_, idx) abort
             cal popup_close(s:idemenu.cheatid)
             retu 1
         endif
+
     elseif a:idx == 4
+        let w = readfile('contest_setting.txt')[0]
+        let code = s:inputI('AtCode Contest Code :', w)
+        cal writefile([code], 'contest_setting.txt')
+        cal popup_close(s:idemenu.cheatid)
+        retu 1
+    elseif a:idx == 5
         if exists(':CocCommand')
             exe 'CocCommand snippets.editSnippets'
         else
@@ -350,7 +358,7 @@ fu! Idemenu_exe(_, idx) abort
             cal popup_close(s:idemenu.cheatid)
             retu 1
         endif
-    elseif a:idx == 5
+    elseif a:idx == 6
         exe '%d'
         cal popup_close(s:idemenu.cheatid)
         retu 1
