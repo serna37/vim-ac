@@ -1221,6 +1221,7 @@ aug END
 colorscheme torte
 colorscheme onedark
 
+
 " }}}
 
 " alse see [https://github.com/serna37/vim/]
