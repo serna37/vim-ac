@@ -140,6 +140,8 @@ set matchtime=3 " jump term sec
 inoremap jj <Esc>:w<CR>
 " row visual
 nnoremap vv ^v$
+" save
+nnoremap <C-s> :w<CR>
 " move cursor at insert mode
 inoremap <C-h> <C-o>h
 inoremap <C-l> <C-o>l
@@ -333,17 +335,30 @@ endf
 fu! Idemenu_exe(_, idx) abort
     if a:idx == 1
         " ❯ python3 -m pip install online-judge-tools
-        let w = s:inputI('which test (lower case like a):')
-        let pre = 'cd ~/work/ac_js && rm -rf test && cat contest_setting.txt | xargs -I {} oj d https://atcoder.jp/contests/{}/tasks/{}_'.w
+        let abc = 'contest_setting : '.readfile('contest_setting.txt')[0]
+        cal popup_notification(abc, #{border:[], zindex:999, line: &lines-30, col: &columns-40, time:2000})
+        let work_dir = '~/work/ac_cpp'
+        " TODO legacy js
+        if &filetype == 'javascript'
+            let test_cmd = 'oj t -c "node main.js"'
+        elseif &filetype == 'cpp'
+            let test_cmd = 'g++ main.cpp && oj t'
+        endif
+        let test_cmd = 'g++ main.cpp && oj t'
+        let contest_txt = readfile('contest_setting.txt')[0]
+        let contest_cd = split(contest_txt, '_')[0]
+        let pre = 'cd '.work_dir.' && rm -rf test && oj d https://atcoder.jp/contests/'.contest_cd.'/tasks/'.contest_txt
         cal system(pre)
-        let cmd = 'cd ~/work/ac_js && oj t -c "node main.js"'
+        let cmd = 'cd '.work_dir.' && '.test_cmd
         sil! exe 'vne ac_test'
         setl buftype=nofile bufhidden=wipe modifiable
         setl nonumber norelativenumber nocursorline nocursorcolumn signcolumn=no
         setl filetype=log
         cal matchadd('DarkBlue', 'SUCCESS')
         sil! exe 'r!'.cmd
-        let s:test_timer_id = timer_start(500, {tid -> TestTimer(tid)}, { "repeat" : 10 })
+        let s:test_timer_id = timer_start(200, {tid -> TestTimer(tid)}, { "repeat" : 10 })
+        cal popup_close(s:idemenu.cheatid)
+        retu 1
     elseif a:idx == 2
         " TODO ide menu format 選択部分のみをしたい
         if exists(':Coc')
@@ -364,6 +379,8 @@ fu! Idemenu_exe(_, idx) abort
         let w = readfile('contest_setting.txt')[0]
         let code = s:inputI('AtCode Contest Code :', w)
         cal writefile([code], 'contest_setting.txt')
+        let abc = 'contest_setting : '.readfile('contest_setting.txt')[0]
+        cal popup_notification(abc, #{border:[], zindex:999, line: &lines-30, col: &columns-40, time:2000})
         cal popup_close(s:idemenu.cheatid)
         retu 1
     elseif a:idx == 5
@@ -376,6 +393,15 @@ fu! Idemenu_exe(_, idx) abort
         endif
     elseif a:idx == 6
         exe '%d'
+        exe 'w'
+        let alp = #{a:'b',b:'c',c:'d',d:'e',e:'f',f:'g'}
+        let contest_txt = readfile('contest_setting.txt')[0]
+        let contest_cd = split(contest_txt, '_')[0]
+        let question_cd = split(contest_txt, '_')[1]
+        let next = contest_cd.'_'.get(alp, question_cd, '')
+        cal writefile([next], 'contest_setting.txt')
+        let abc = 'contest_setting : '.readfile('contest_setting.txt')[0]
+        cal popup_notification(abc, #{border:[], zindex:999, line: &lines-30, col: &columns-40, time:2000})
         cal popup_close(s:idemenu.cheatid)
         retu 1
     endif
@@ -1263,7 +1289,7 @@ colorscheme onedark
 " 設定中のコンテスト番号を表示（テスト対象で使用する）
 try
     let abc = 'contest_setting : '.readfile('contest_setting.txt')[0]
-    cal popup_notification(abc, #{border:[], zindex:999, line: &lines-30, col: &columns-40, time:10000})
+    cal popup_notification(abc, #{border:[], zindex:999, line: &lines-30, col: &columns-40, time:2000})
 catch
 endtry
 

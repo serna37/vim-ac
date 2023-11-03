@@ -5,6 +5,7 @@ You should create this command to checkout profile.
 
 ```
 alias acvim='ln -nfs ~/git/vim-ac/.vimrc ~/.vimrc && cd ~/work/ac_js && vi -c "CocCommand explorer --width 30"'
+alias acvim='ln -nfs ~/git/vim-ac/.vimrc ~/.vimrc && cd ~/work/ac_cpp && vi -c "CocCommand explorer --width 30"'
 ```
 
 And normal vim command is
