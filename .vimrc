@@ -332,6 +332,9 @@ fu! TestTimer(tid) abort
         endif
     endfor
 endf
+
+let s:ac_test_winid = -1
+
 fu! Idemenu_exe(_, idx) abort
     if a:idx == 1
         " ❯ python3 -m pip install online-judge-tools
@@ -350,7 +353,12 @@ fu! Idemenu_exe(_, idx) abort
         let pre = 'cd '.work_dir.' && rm -rf test && oj d https://atcoder.jp/contests/'.contest_cd.'/tasks/'.contest_txt
         cal system(pre)
         let cmd = 'cd '.work_dir.' && '.test_cmd
-        sil! exe 'vne ac_test'
+        let s:ac_test_winid = bufwinid('ac_test')
+        if s:ac_test_winid == -1
+            sil! exe 'vne ac_test'
+        else
+            call win_gotoid(s:ac_test_winid)
+        endif
         setl buftype=nofile bufhidden=wipe modifiable
         setl nonumber norelativenumber nocursorline nocursorcolumn signcolumn=no
         setl filetype=log
@@ -1304,8 +1312,12 @@ let s:timer_popup_id = popup_create(s:view_time, #{
 fu! Timer(tid) abort
     let s:timer_sec += 1
 
-    " bell
-    if s:timer_sec%1200==0
+    " bell at 3min, 8min, 18min, 40min
+    if s:timer_sec==180 || s:timer_sec==480 || s:timer_sec==1080 || s:timer_sec==2400
+        cal system('afplay /System/Library/Sounds/Submarine.aiff')
+    endif
+    " bell every 20min
+    if s:timer_sec>2400 && s:timer_sec%1200==0
         cal system('afplay /System/Library/Sounds/Submarine.aiff')
     endif
     " LPAD 0埋め
