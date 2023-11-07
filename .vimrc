@@ -292,12 +292,14 @@ noremap <silent><Plug>(anchor) :<C-u>cal <SID>anchor()<CR>
 let s:idemenu = #{
     \ menuid: 0, mttl: ' IDE MENU (j / k) Enter choose | * require plugin ',
     \ menu: [
-        \ '[⚙︎Test]          test by oj cmd',
-        \ '[Format]         applay format for this file',
-        \ '[ReName]         rename current word recursively',
-        \ '[⚖︎ContestCode]   checkout contest code',
-        \ '[Snippet]        edit snippets',
-        \ '[✔︎All Cut]       copy all and delete',
+        \ '[⚙️  Test]         test by oj cmd',
+        \ '[Format]          applay format for this file',
+        \ '[ReName]          rename current word recursively',
+        \ '[🚀 ContestCode]  checkout contest code',
+        \ '[Snippet]         edit snippets',
+        \ '[⏱️ Timer]        start timer with bell',
+        \ '[🔓 Stop]         stop timer',
+        \ '[🎬 All Cut]      copy all and delete',
     \ ],
     \ cheatid: 0, cheattitle: ' LSP KeyMaps ',
     \ cheat: [
@@ -326,7 +328,7 @@ fu! TestTimer(tid) abort
     let lines = getline(0, line("$"))
     for i in lines
         if match(i, "test success") != -1
-            cal system('afplay /System/Library/Sounds/Hero.aiff')
+            cal job_start(["/bin/zsh","-c","afplay /System/Library/Sounds/Hero.aiff"])
             cal timer_stop(a:tid)
             retu
         endif
@@ -358,6 +360,7 @@ fu! Idemenu_exe(_, idx) abort
             sil! exe 'vne ac_test'
         else
             call win_gotoid(s:ac_test_winid)
+            exe '%d'
         endif
         setl buftype=nofile bufhidden=wipe modifiable
         setl nonumber norelativenumber nocursorline nocursorcolumn signcolumn=no
@@ -399,7 +402,16 @@ fu! Idemenu_exe(_, idx) abort
             cal popup_close(s:idemenu.cheatid)
             retu 1
         endif
+
     elseif a:idx == 6
+        cal TimerStart()
+        cal popup_close(s:idemenu.cheatid)
+        retu 1
+    elseif a:idx == 7
+        cal TimerStop()
+        cal popup_close(s:idemenu.cheatid)
+        retu 1
+    elseif a:idx == 8
         exe '%d'
         exe 'w'
         let alp = #{a:'b',b:'c',c:'d',d:'e',e:'f',f:'g'}
@@ -1178,12 +1190,13 @@ aug END
 " neoclide/coc.nvim has special args
 let s:plug = #{}
 let s:plug.repos = [
-    \ 'sheerun/vim-polyglot'
+    \ 'sheerun/vim-polyglot',
+    \ 'jiangmiao/auto-pairs'
     \ ]
 
 " coc extentions
 let s:plug.coc_extentions = [
-    \ 'coc-explorer', 'coc-pairs', 'coc-fzf-preview', 'coc-snippets',
+    \ 'coc-explorer', 'coc-fzf-preview', 'coc-snippets',
     \ 'coc-sh', 'coc-vimlsp', 'coc-json', 'coc-sql', 'coc-html', 'coc-css',
     \ 'coc-tsserver', 'coc-clangd', 'coc-go', 'coc-pyright', 'coc-java',
     \ ]
@@ -1200,7 +1213,6 @@ let s:plug.coc_config = ['{',
 fu! s:plug.install() abort
     let cmd = "mkdir -p ~/.vim/pack/plugins/start && cd ~/.vim/pack/plugins/start && repos=('".join(self.repos,"' '")."') && for v in ${repos[@]};do git clone --depth 1 https://github.com/${v};done"
       \ ." && git clone -b release https://github.com/neoclide/coc.nvim"
-    cal s:runcat.start()
     cal job_start(["/bin/zsh","-c",cmd], #{close_cb: self.coc_setup})
     cal s:echoI('colors, plugins installing...')
     cal popup_notification('colors, plugins installing...', #{zindex: 999, line: &lines, col: 5})
@@ -1208,7 +1220,6 @@ endf
 
 " coc extentions
 fu! s:plug.coc_setup(ch) abort
-    cal s:runcat.stop()
     cal s:echoE('plugins installed. coc-extentions installing. PLEASE REBOOT VIM after this.')
     cal popup_notification('colors, plugins installed. coc-extentions installing. PLEASE REBOOT VIM after this.', #{zindex: 999, line: &lines, col: 5})
     exe 'source ~/.vim/pack/plugins/start/coc.nvim/plugin/coc.vim'
@@ -1304,21 +1315,38 @@ endtry
 " 100分タイマー
 let s:timer_sec = 0
 let s:view_time = ['000:00']
-let s:timer_popup_id = popup_create(s:view_time, #{
+let s:timer_popup_id = -1
+let s:timer_upd_id = -1
+
+fu! TimerStart() abort
+    let s:timer_sec = 0
+    let s:view_time = ['000:00']
+    cal timer_stop(s:timer_upd_id)
+    cal popup_close(s:timer_popup_id)
+
+    let s:timer_popup_id = popup_create(s:view_time, #{
         \ zindex: 99, mapping: 0, scrollbar: 1,
         \ border: [], borderchars: ['─','│','─','│','╭','╮','╯','╰'], borderhighlight: ['DarkBlue'],
         \ line: &lines-10, col: 10,
         \ })
+    let s:timer_upd_id = timer_start(1000, function("Timer"), { "repeat" : -1 })
+endf
+
+fu! TimerStop() abort
+    cal timer_stop(s:timer_upd_id)
+    cal popup_close(s:timer_popup_id)
+endf
+
 fu! Timer(tid) abort
     let s:timer_sec += 1
 
-    " bell at 3min, 8min, 18min, 40min
-    if s:timer_sec==180 || s:timer_sec==480 || s:timer_sec==1080 || s:timer_sec==2400
-        cal system('afplay /System/Library/Sounds/Submarine.aiff')
+    " bell at 1min, 3min, 8min, 18min, 40min
+    if s:timer_sec==60 || s:timer_sec==180 || s:timer_sec==480 || s:timer_sec==1080 || s:timer_sec==2400
+        cal job_start(["/bin/zsh","-c","afplay /System/Library/Sounds/Submarine.aiff"])
     endif
     " bell every 20min
     if s:timer_sec>2400 && s:timer_sec%1200==0
-        cal system('afplay /System/Library/Sounds/Submarine.aiff')
+        cal job_start(["/bin/zsh","-c","afplay /System/Library/Sounds/Submarine.aiff"])
     endif
     " LPAD 0埋め
     let minutes = s:timer_sec/60
@@ -1337,7 +1365,7 @@ fu! Timer(tid) abort
         cal matchadd('DarkRed', '[^ ]', 16, -1, #{window: s:timer_popup_id})
     endif
 endf
-cal timer_start(1000, function("Timer"), { "repeat" : -1 })
+
 
 " }}}
 
