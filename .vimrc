@@ -110,13 +110,14 @@ nmap <Leader>z <Plug>(zen-mode)
 " row move
 nnoremap j gj
 nnoremap k gk
-vnoremap <Tab> 5gj
-vnoremap <S-Tab> 5gk
-nmap <Tab> 5j<Plug>(anchor)
-nmap <S-Tab> 5k<Plug>(anchor)
-nmap H H<Plug>(anchor)
-nmap M M<Plug>(anchor)
-nmap L L<Plug>(anchor)
+" TODO conflict with coc-snippet
+"vnoremap <Tab> 5gj
+"vnoremap <S-Tab> 5gk
+nnoremap <Tab> 5j<Plug>(anchor)
+nnoremap <S-Tab> 5k<Plug>(anchor)
+nnoremap H H<Plug>(anchor)
+nnoremap M M<Plug>(anchor)
+nnoremap L L<Plug>(anchor)
 " comfortable scroll
 nmap <C-u> <Plug>(scroll-u)
 nmap <C-d> <Plug>(scroll-d)
@@ -137,11 +138,15 @@ set backspace=indent,eol,start " backspace attitude on insert mode
 set showmatch " jump pair of parentheses when write
 set matchtime=3 " jump term sec
 " return normal & save
-inoremap jj <Esc>:w<CR>
+inoremap jj <Esc>A;<Esc>:w<CR>
 " row visual
 nnoremap vv ^v$
 " save
 nnoremap <C-s> :w<CR>
+" comment only one row
+set formatoptions-=ro
+" formatter
+nnoremap <Leader>f :cal CocActionAsync('format')<CR>
 " move cursor at insert mode
 inoremap <C-h> <C-o>h
 inoremap <C-l> <C-o>l
@@ -193,7 +198,8 @@ set shortmess-=S " show hit word's number at right bottom
 " no move search word with multi highlight
 nmap # *N<Plug>(qikhl-toggle)
 nmap <silent><Leader>q <Plug>(qikhl-clear):noh<CR>
-nmap s <Plug>(emotion)
+"nmap s <Plug>(emotion)
+nnoremap s :echo ''<CR>
 " }}}
 
 " ##################         OTHERS         ################### {{{
@@ -201,6 +207,7 @@ nmap s <Plug>(emotion)
 scriptencoding utf-8 " this file's charset
 set ttyfast " fast terminal connection
 set regexpengine=0 " chose regexp engin
+set foldmethod=marker
 " }}}
 " }}}
 
@@ -305,6 +312,7 @@ let s:idemenu = #{
     \ cheat: [
         \ ' (Space d) [Definition]     Go to Definition ',
         \ ' (Space r) [Reference]      Reference ',
+        \ ' (Space f) [Formatter]      foramtting ',
         \ ' (Space o) [Outline]        view outline on popup ',
         \ ' (Space ?) [Document]       show document on popup scroll C-f/b ',
         \ ' (Space ,) [Next Diagnosis] jump next diagnosis ',
@@ -338,6 +346,7 @@ endf
 let s:ac_test_winid = -1
 
 fu! Idemenu_exe(_, idx) abort
+    echo a:idx
     if a:idx == 1
         " ❯ python3 -m pip install online-judge-tools
         let abc = 'contest_setting : '.readfile('contest_setting.txt')[0]
@@ -347,9 +356,9 @@ fu! Idemenu_exe(_, idx) abort
         if &filetype == 'javascript'
             let test_cmd = 'oj t -c "node main.js"'
         elseif &filetype == 'cpp'
-            let test_cmd = 'g++ main.cpp && oj t'
+            let test_cmd = 'g++ -std=c++20 main.cpp && oj t'
         endif
-        let test_cmd = 'g++ main.cpp && oj t'
+        let test_cmd = 'g++ -std=c++20 main.cpp && oj t'
         let contest_txt = readfile('contest_setting.txt')[0]
         let contest_cd = split(contest_txt, '_')[0]
         let pre = 'cd '.work_dir.' && rm -rf test && oj d https://atcoder.jp/contests/'.contest_cd.'/tasks/'.contest_txt
@@ -1116,7 +1125,7 @@ let s:start.cheat_sheet_win = [
     \'               │ C-n / p    | (buffer tab)(next / prev)             │           │ Space f          | (formatter)                     │',
     \'               │ C-w v / s  | (window split)(vertical / horizontal) │           │ Space w          | (f-scope toggle)                │',
     \'               │ ←↑↓→       | (window)(resize)                      │           │ Tab S-Tab        | (jump 5rows)                    │',
-    \'               │ C-hjkl     | (window)(forcus)                      │           │ s                | (easymotion)                    │',
+    \'               │ C-hjkl     | (window)(forcus)                      │           │ s                | (noop)                          │',
     \'               │ Space t    | (terminal)                            │           │ INSERT C-hjkl    | (cursor move)                   │',
     \'               │ Space z    | (Zen Mode)                            │           │ VISUAL C-jk      | (blok up / down)                │',
     \'               ╰────────────────────────────────────────────────────╯           ╰────────────────────────────────────────────────────╯',
